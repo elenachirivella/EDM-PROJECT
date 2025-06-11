@@ -4,6 +4,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import calplot
 
 # Configuración
 st.set_page_config(page_title="Riesgo Climático en Valencia", layout="wide")
@@ -27,6 +28,14 @@ año_sel = st.sidebar.selectbox("Selecciona un año", sorted(df["año"].unique()
 mes_sel = st.sidebar.selectbox("Selecciona un mes", sorted(df["mes"].unique()), index=0)
 
 df_filtrado = df[(df["año"] == año_sel) & (df["mes"] == mes_sel)]
+
+# 🔎 Explicación de riesgos
+with st.expander("ℹ️ ¿Qué significa cada tipo de riesgo?"):
+    st.markdown("""
+    - **Riesgo UV alto**: índice UV ≥ 8. Puede provocar quemaduras en menos de 30 minutos sin protección.
+    - **Riesgo por calor extremo**: temperatura máxima ≥ 35°C. Aumenta el riesgo de golpe de calor.
+    - **Riesgo por humedad alta**: humedad relativa ≥ 85%. Dificulta la evaporación del sudor y aumenta la sensación térmica.
+    """)
 
 # Gráfico: evolución del índice UV
 st.subheader("📈 Evolución diaria del índice UV")
@@ -61,4 +70,12 @@ st.pyplot(fig3)
 st.subheader("📋 Top 10 días con mayor riesgo")
 tabla = df_filtrado.sort_values(by="riesgo_total", ascending=False).head(10)
 st.dataframe(tabla[["datetime", "uvindex", "tempmax", "humidity", "riesgo_total", "condicion_simplificada"]])
+
+# Calendario: riesgo total por día
+st.subheader("🗓️ Calendario de riesgo total por día")
+riesgo_diario = df.groupby(df["datetime"].dt.date)["riesgo_total"].sum()
+riesgo_diario = pd.Series(riesgo_diario)
+riesgo_diario.index = pd.to_datetime(riesgo_diario.index)
+fig_cal = calplot.calplot(riesgo_diario, cmap="Reds", colorbar=True, suptitle="Nivel de riesgo diario (0 a 3)")
+st.pyplot(fig_cal.figure)
 
