@@ -77,48 +77,6 @@ tabla = df_filtrado.sort_values(by="riesgo_total", ascending=False).head(10)
 st.dataframe(tabla[["datetime", "uvindex", "tempmax", "humidity", "riesgo_total", "condicion_simplificada"]])
 
 
-
-# 🔬 MODELO DE PREDICCIÓN – RANDOM FOREST
-st.subheader("🔬 Predicción de índice UV – Modelo Random Forest")
-
-# Preparar datos para el modelo
-df_modelo = df.copy()
-df_modelo["condicion_simplificada"] = df_modelo["condicion_simplificada"].astype("category").cat.codes
-
-features = ["tempmax", "humidity", "condicion_simplificada"]
-X = df_modelo[features]
-y = df_modelo["uvindex"]
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-# Entrenar modelo
-modelo = RandomForestRegressor(n_estimators=100, random_state=42)
-modelo.fit(X_train, y_train)
-y_pred = modelo.predict(X_test)
-
-# Evaluación
-rmse = sqrt(mean_squared_error(y_test, y_pred))
-r2 = r2_score(y_test, y_pred)
-
-st.markdown(f"**RMSE:** {rmse:.2f} &nbsp;&nbsp;&nbsp; **R²:** {r2:.2f}")
-
-# Gráfico real vs predicho
-fig_rf1, ax_rf1 = plt.subplots()
-sns.scatterplot(x=y_test, y=y_pred, ax=ax_rf1)
-ax_rf1.plot([y.min(), y.max()], [y.min(), y.max()], 'r--')
-ax_rf1.set_xlabel("Valor real")
-ax_rf1.set_ylabel("Valor predicho")
-ax_rf1.set_title("Random Forest – Índice UV")
-st.pyplot(fig_rf1)
-
-# Importancia de variables
-importancia = pd.Series(modelo.feature_importances_, index=features)
-fig_rf2, ax_rf2 = plt.subplots()
-sns.barplot(x=importancia.index, y=importancia.values, ax=ax_rf2)
-ax_rf2.set_title("Importancia de variables")
-ax_rf2.set_ylabel("Peso")
-st.pyplot(fig_rf2)
-
 # 🎛️ PREDICCIÓN EN TIEMPO REAL
 st.subheader("🎛️ Predicción personalizada del índice UV")
 st.markdown("""
@@ -170,5 +128,56 @@ if st.button("Predecir índice UV"):
     prediccion = modelo.predict(entrada)[0]
     st.success(f"🌞 El índice UV estimado es: **{prediccion:.2f}**")
 
+# 🔬 MODELO DE PREDICCIÓN – RANDOM FOREST
+st.subheader("🔬 Predicción de índice UV – Modelo Random Forest")
+st.markdown("""
+Para predecir el índice UV a partir de variables meteorológicas, se ha optado por entrenar un modelo de tipo Random Forest por las siguientes razones:
+
+Es un modelo robusto y versátil, ideal cuando se trabaja con datasets pequeños o medianos como este.
+
+- Permite capturar relaciones no lineales entre las variables. Por ejemplo, el efecto de la humedad sobre el índice UV no siempre es proporcional ni directo.
+- Tolera bien los datos con ruido o pequeñas imprecisiones, sin requerir una limpieza excesiva o supuestos estadísticos estrictos.
+- Calcula la importancia de cada variable automáticamente, lo que permite entender qué factores influyen más en la predicción (por ejemplo, en este caso, la temperatura tiene mayor peso que la humedad o la condición del cielo).
+- Es fácil de interpretar visualmente, lo que resulta ideal para una aplicación educativa y divulgativa como esta.
+
+En resumen, Random Forest es una opción equilibrada entre precisión, facilidad de entrenamiento y explicabilidad, lo que lo convierte en una elección adecuada para este tipo de aplicación ciudadana basada en datos abiertos.
+
+""")
+
+# Preparar datos para el modelo
+df_modelo = df.copy()
+df_modelo["condicion_simplificada"] = df_modelo["condicion_simplificada"].astype("category").cat.codes
+
+features = ["tempmax", "humidity", "condicion_simplificada"]
+X = df_modelo[features]
+y = df_modelo["uvindex"]
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Entrenar modelo
+modelo = RandomForestRegressor(n_estimators=100, random_state=42)
+modelo.fit(X_train, y_train)
+y_pred = modelo.predict(X_test)
+
+# Evaluación
+rmse = sqrt(mean_squared_error(y_test, y_pred))
+r2 = r2_score(y_test, y_pred)
+
+# Gráfico real vs predicho
+fig_rf1, ax_rf1 = plt.subplots()
+sns.scatterplot(x=y_test, y=y_pred, ax=ax_rf1)
+ax_rf1.plot([y.min(), y.max()], [y.min(), y.max()], 'r--')
+ax_rf1.set_xlabel("Valor real")
+ax_rf1.set_ylabel("Valor predicho")
+ax_rf1.set_title("Random Forest – Índice UV")
+st.pyplot(fig_rf1)
+
+# Importancia de variables
+importancia = pd.Series(modelo.feature_importances_, index=features)
+fig_rf2, ax_rf2 = plt.subplots()
+sns.barplot(x=importancia.index, y=importancia.values, ax=ax_rf2)
+ax_rf2.set_title("Importancia de variables")
+ax_rf2.set_ylabel("Peso")
+st.pyplot(fig_rf2)
 
 
