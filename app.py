@@ -1,7 +1,7 @@
 import pandas as pd
 
 # Cargar el dataset original
-df = pd.read_csv("/mnt/data/valencia 2023-03-15 to 2025-03-15.csv", sep=None, engine='python')
+df = pd.read_csv("datos_valencia_limpios.csv", sep=None, engine='python')
 
 # Convertir la columna de fecha a formato datetime
 df["datetime"] = pd.to_datetime(df["datetime"], dayfirst=True)
