@@ -71,14 +71,5 @@ st.subheader("📋 Top 10 días con mayor riesgo")
 tabla = df_filtrado.sort_values(by="riesgo_total", ascending=False).head(10)
 st.dataframe(tabla[["datetime", "uvindex", "tempmax", "humidity", "riesgo_total", "condicion_simplificada"]])
 
-# Calendario: riesgo total por día
-st.subheader("🗓️ Calendario de riesgo total por día")
-riesgo_diario = df.groupby(df["datetime"].dt.date)["riesgo_total"].sum()
-riesgo_diario = pd.Series(riesgo_diario)
-riesgo_diario.index = pd.to_datetime(riesgo_diario.index)
-
-# Dibujar el calendario
-fig_cal = calplot.calplot(riesgo_diario, cmap="Reds", colorbar=True, suptitle="Nivel de riesgo diario (0 a 3)")
-st.pyplot(fig_cal)  
 
 
