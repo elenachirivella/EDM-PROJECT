@@ -76,58 +76,6 @@ st.subheader("📋 Top 10 días con mayor riesgo")
 tabla = df_filtrado.sort_values(by="riesgo_total", ascending=False).head(10)
 st.dataframe(tabla[["datetime", "uvindex", "tempmax", "humidity", "riesgo_total", "condicion_simplificada"]])
 
-
-# 🎛️ PREDICCIÓN EN TIEMPO REAL
-st.subheader("🎛️ Predicción personalizada del índice UV")
-st.markdown("""
-¿Te has preguntado cuánto podría aumentar el riesgo solar en función del clima?  
-Con esta herramienta puedes **simular el índice UV** esperado introduciendo condiciones meteorológicas reales o hipotéticas.
-
-Esto puede ayudarte a:
-- Evaluar el riesgo de quemaduras o exposición solar.
-- Tomar decisiones informadas sobre protección solar.
-- Planificar actividades al aire libre con mayor seguridad.
-
----
-
-### 🧠 ¿Por qué es posible predecir el índice UV con estos datos?
-
-Aunque el índice UV depende principalmente de factores astronómicos y atmosféricos (como la posición del sol y la capa de ozono), **las condiciones locales influyen directamente en su efecto sobre la salud**. Estas variables ayudan a estimar mejor el riesgo:
-
-- **Temperatura máxima**: A menudo asociada a cielos despejados y mayor radiación solar.
-- **Humedad**: Afecta la dispersión de la radiación y puede influir en la sensación térmica.
-- **Condición meteorológica**: Días nublados o lluviosos suelen reducir la exposición directa, pero no la eliminan por completo.
-
-El modelo ha sido entrenado con datos reales de Valencia para aprender la relación entre estas condiciones y el índice UV registrado.
-""")
-
-
-st.markdown("Introduce condiciones meteorológicas para estimar el índice UV:")
-
-# Formulario de entrada
-col1, col2 = st.columns(2)
-
-with col1:
-    temp_input = st.number_input("Temperatura máxima (°C)", min_value=0.0, max_value=50.0, value=25.0)
-    humidity_input = st.slider("Humedad relativa (%)", 0, 100, 60)
-
-with col2:
-    condicion_input = st.selectbox(
-        "Condición meteorológica",
-        ["despejado", "nublado", "lluvia", "otros"]
-    )
-
-# Codificar la condición como en el modelo
-cond_map = {"despejado": 0, "lluvia": 1, "nublado": 2, "otros": 3}
-cond_codificada = cond_map.get(condicion_input, 3)
-
-# Predecir
-if st.button("Predecir índice UV"):
-    entrada = pd.DataFrame([[temp_input, humidity_input, cond_codificada]],
-                           columns=["tempmax", "humidity", "condicion_simplificada"])
-    prediccion = modelo.predict(entrada)[0]
-    st.success(f"🌞 El índice UV estimado es: **{prediccion:.2f}**")
-
 # 🔬 MODELO DE PREDICCIÓN – RANDOM FOREST
 st.subheader("🔬 Predicción de índice UV – Modelo Random Forest")
 st.markdown("""
@@ -179,3 +127,55 @@ sns.barplot(x=importancia.index, y=importancia.values, ax=ax_rf2)
 ax_rf2.set_title("Importancia de variables")
 ax_rf2.set_ylabel("Peso")
 st.pyplot(fig_rf2)
+# 🎛️ PREDICCIÓN EN TIEMPO REAL
+st.subheader("🎛️ Predicción personalizada del índice UV")
+st.markdown("""
+¿Te has preguntado cuánto podría aumentar el riesgo solar en función del clima?  
+Con esta herramienta puedes **simular el índice UV** esperado introduciendo condiciones meteorológicas reales o hipotéticas.
+
+Esto puede ayudarte a:
+- Evaluar el riesgo de quemaduras o exposición solar.
+- Tomar decisiones informadas sobre protección solar.
+- Planificar actividades al aire libre con mayor seguridad.
+
+---
+
+### 🧠 ¿Por qué es posible predecir el índice UV con estos datos?
+
+Aunque el índice UV depende principalmente de factores astronómicos y atmosféricos (como la posición del sol y la capa de ozono), **las condiciones locales influyen directamente en su efecto sobre la salud**. Estas variables ayudan a estimar mejor el riesgo:
+
+- **Temperatura máxima**: A menudo asociada a cielos despejados y mayor radiación solar.
+- **Humedad**: Afecta la dispersión de la radiación y puede influir en la sensación térmica.
+- **Condición meteorológica**: Días nublados o lluviosos suelen reducir la exposición directa, pero no la eliminan por completo.
+
+El modelo ha sido entrenado con datos reales de Valencia para aprender la relación entre estas condiciones y el índice UV registrado.
+""")
+
+
+st.markdown("Introduce condiciones meteorológicas para estimar el índice UV:")
+
+# Formulario de entrada
+col1, col2 = st.columns(2)
+
+with col1:
+    temp_input = st.number_input("Temperatura máxima (°C)", min_value=0.0, max_value=50.0, value=25.0)
+    humidity_input = st.slider("Humedad relativa (%)", 0, 100, 60)
+
+with col2:
+    condicion_input = st.selectbox(
+        "Condición meteorológica",
+        ["despejado", "nublado", "lluvia", "otros"]
+    )
+
+# Codificar la condición como en el modelo
+cond_map = {"despejado": 0, "lluvia": 1, "nublado": 2, "otros": 3}
+cond_codificada = cond_map.get(condicion_input, 3)
+
+# Predecir
+if st.button("Predecir índice UV"):
+    entrada = pd.DataFrame([[temp_input, humidity_input, cond_codificada]],
+                           columns=["tempmax", "humidity", "condicion_simplificada"])
+    prediccion = modelo.predict(entrada)[0]
+    st.success(f"🌞 El índice UV estimado es: **{prediccion:.2f}**")
+
+
