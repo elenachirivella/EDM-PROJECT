@@ -1,36 +1,64 @@
+# app.py
+
+import streamlit as st
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-# Cargar el dataset original
-df = pd.read_csv("datos_valencia_limpios.csv", sep=None, engine='python')
+# Configuración
+st.set_page_config(page_title="Riesgo Climático en Valencia", layout="wide")
 
-# Convertir la columna de fecha a formato datetime
-df["datetime"] = pd.to_datetime(df["datetime"], dayfirst=True)
+# Título
+st.title("🌤️ Riesgo Climático Diario en Valencia")
+st.markdown("""
+Esta aplicación muestra la evolución de los riesgos climáticos en Valencia basados en tres factores: **índice UV elevado**, **calor extremo** y **humedad alta**.
+""")
 
-# Crear variables de riesgo
-df["riesgo_uv"] = df["uvindex"] >= 8
-df["riesgo_calor"] = df["tempmax"] >= 35
-df["riesgo_humedad"] = df["humidity"] >= 85
+# Cargar datos
+df = pd.read_csv("datos_valencia_limpios.csv", parse_dates=["datetime"])
 
-# Crear una columna total de riesgo (suma de condiciones verdaderas)
-df["riesgo_total"] = df[["riesgo_uv", "riesgo_calor", "riesgo_humedad"]].sum(axis=1)
+# Añadir columnas de mes y año
+df["mes"] = df["datetime"].dt.month
+df["año"] = df["datetime"].dt.year
 
-# Clasificar condiciones meteorológicas
-df["condicion_simplificada"] = df["conditions"].str.lower().map(
-    lambda x: "despejado" if "clear" in x else
-              "nublado" if "cloud" in x else
-              "lluvia" if "rain" in x else
-              "otros"
-)
+# Sidebar de filtros
+st.sidebar.header("📅 Filtros")
+año_sel = st.sidebar.selectbox("Selecciona un año", sorted(df["año"].unique()), index=0)
+mes_sel = st.sidebar.selectbox("Selecciona un mes", sorted(df["mes"].unique()), index=0)
 
-# Guardar un resumen de las nuevas columnas
-columnas_nuevas = df[["datetime", "uvindex", "tempmax", "humidity",
-                      "riesgo_uv", "riesgo_calor", "riesgo_humedad",
-                      "riesgo_total", "condicion_simplificada"]]
+df_filtrado = df[(df["año"] == año_sel) & (df["mes"] == mes_sel)]
 
-# Guardar en un nuevo CSV
-output_path = "/mnt/data/datos_valencia_limpios.csv"
-columnas_nuevas.to_csv(output_path, index=False)
+# Gráfico: evolución del índice UV
+st.subheader("📈 Evolución diaria del índice UV")
+fig1, ax1 = plt.subplots(figsize=(10, 4))
+ax1.plot(df_filtrado["datetime"], df_filtrado["uvindex"], marker='o', color='orange')
+ax1.set_xlabel("Fecha")
+ax1.set_ylabel("Índice UV")
+ax1.set_title("Índice UV diario")
+ax1.grid(True)
+st.pyplot(fig1)
 
-import ace_tools as tools; tools.display_dataframe_to_user(name="Datos Valencia Limpios", dataframe=columnas_nuevas)
+# Gráfico: días con cada tipo de riesgo
+st.subheader("🔥 Cantidad de días con riesgo climático")
+riesgos = df_filtrado[["riesgo_uv", "riesgo_calor", "riesgo_humedad"]].sum()
+riesgos.index = ["UV alto", "Calor extremo", "Humedad alta"]
+fig2, ax2 = plt.subplots()
+sns.barplot(x=riesgos.index, y=riesgos.values, ax=ax2, palette="Reds")
+ax2.set_ylabel("Número de días")
+ax2.set_title("Tipos de riesgo climático")
+st.pyplot(fig2)
 
-output_path
+# Gráfico: condiciones meteorológicas más frecuentes
+st.subheader("🌦️ Condiciones meteorológicas más frecuentes")
+condiciones = df_filtrado["condicion_simplificada"].value_counts()
+fig3, ax3 = plt.subplots()
+sns.barplot(x=condiciones.index, y=condiciones.values, ax=ax3, palette="Blues")
+ax3.set_ylabel("Número de días")
+ax3.set_title("Condiciones más comunes")
+st.pyplot(fig3)
+
+# Tabla: días con mayor riesgo total
+st.subheader("📋 Top 10 días con mayor riesgo")
+tabla = df_filtrado.sort_values(by="riesgo_total", ascending=False).head(10)
+st.dataframe(tabla[["datetime", "uvindex", "tempmax", "humidity", "riesgo_total", "condicion_simplificada"]])
+
