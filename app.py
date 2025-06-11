@@ -5,6 +5,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import calplot
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, r2_score
+from math import sqrt
+
 
 # Configuración
 st.set_page_config(page_title="Riesgo Climático en Valencia", layout="wide")
@@ -70,6 +75,50 @@ st.pyplot(fig3)
 st.subheader("📋 Top 10 días con mayor riesgo")
 tabla = df_filtrado.sort_values(by="riesgo_total", ascending=False).head(10)
 st.dataframe(tabla[["datetime", "uvindex", "tempmax", "humidity", "riesgo_total", "condicion_simplificada"]])
+
+
+
+# 🔬 MODELO DE PREDICCIÓN – RANDOM FOREST
+st.subheader("🔬 Predicción de índice UV – Modelo Random Forest")
+
+# Preparar datos para el modelo
+df_modelo = df.copy()
+df_modelo["condicion_simplificada"] = df_modelo["condicion_simplificada"].astype("category").cat.codes
+
+features = ["tempmax", "humidity", "condicion_simplificada"]
+X = df_modelo[features]
+y = df_modelo["uvindex"]
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Entrenar modelo
+modelo = RandomForestRegressor(n_estimators=100, random_state=42)
+modelo.fit(X_train, y_train)
+y_pred = modelo.predict(X_test)
+
+# Evaluación
+rmse = sqrt(mean_squared_error(y_test, y_pred))
+r2 = r2_score(y_test, y_pred)
+
+st.markdown(f"**RMSE:** {rmse:.2f} &nbsp;&nbsp;&nbsp; **R²:** {r2:.2f}")
+
+# Gráfico real vs predicho
+fig_rf1, ax_rf1 = plt.subplots()
+sns.scatterplot(x=y_test, y=y_pred, ax=ax_rf1)
+ax_rf1.plot([y.min(), y.max()], [y.min(), y.max()], 'r--')
+ax_rf1.set_xlabel("Valor real")
+ax_rf1.set_ylabel("Valor predicho")
+ax_rf1.set_title("Random Forest – Índice UV")
+st.pyplot(fig_rf1)
+
+# Importancia de variables
+importancia = pd.Series(modelo.feature_importances_, index=features)
+fig_rf2, ax_rf2 = plt.subplots()
+sns.barplot(x=importancia.index, y=importancia.values, ax=ax_rf2)
+ax_rf2.set_title("Importancia de variables")
+ax_rf2.set_ylabel("Peso")
+st.pyplot(fig_rf2)
+
 
 
 
