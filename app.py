@@ -121,6 +121,28 @@ st.pyplot(fig_rf2)
 
 # 🎛️ PREDICCIÓN EN TIEMPO REAL
 st.subheader("🎛️ Predicción personalizada del índice UV")
+st.markdown("""
+¿Te has preguntado cuánto podría aumentar el riesgo solar en función del clima?  
+Con esta herramienta puedes **simular el índice UV** esperado introduciendo condiciones meteorológicas reales o hipotéticas.
+
+Esto puede ayudarte a:
+- Evaluar el riesgo de quemaduras o exposición solar.
+- Tomar decisiones informadas sobre protección solar.
+- Planificar actividades al aire libre con mayor seguridad.
+
+---
+
+### 🧠 ¿Por qué es posible predecir el índice UV con estos datos?
+
+Aunque el índice UV depende principalmente de factores astronómicos y atmosféricos (como la posición del sol y la capa de ozono), **las condiciones locales influyen directamente en su efecto sobre la salud**. Estas variables ayudan a estimar mejor el riesgo:
+
+- **Temperatura máxima**: A menudo asociada a cielos despejados y mayor radiación solar.
+- **Humedad**: Afecta la dispersión de la radiación y puede influir en la sensación térmica.
+- **Condición meteorológica**: Días nublados o lluviosos suelen reducir la exposición directa, pero no la eliminan por completo.
+
+El modelo ha sido entrenado con datos reales de Valencia para aprender la relación entre estas condiciones y el índice UV registrado.
+""")
+
 
 st.markdown("Introduce condiciones meteorológicas para estimar el índice UV:")
 
